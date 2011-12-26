@@ -227,4 +227,14 @@ public final class Tools {
         InetSocketAddress addr = (InetSocketAddress) socketAddress;
         return InetAddress.getByAddress(addr.getAddress().getAddress()).getCanonicalHostName();
     }
+
+    public static boolean isNumeric(String str) {
+        try   {
+            double d = Double.parseDouble(str);
+        } catch(NumberFormatException e) {
+            return false;
+        }
+
+        return true;
+    }
 }

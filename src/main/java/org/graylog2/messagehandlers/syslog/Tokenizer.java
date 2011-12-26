@@ -22,6 +22,8 @@ package org.graylog2.messagehandlers.syslog;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.log4j.Logger;
+import org.graylog2.Tools;
 import org.productivity.java.syslog4j.server.impl.event.SyslogServerEvent;
 
 /**
@@ -34,14 +36,48 @@ import org.productivity.java.syslog4j.server.impl.event.SyslogServerEvent;
  */
 public class Tokenizer {
 
-    char[] chseparators = { '=' };
+    private static final Logger LOG = Logger.getLogger(Tokenizer.class);
 
-    public static Map extractAdditionalFields(SyslogServerEvent msg) {
+    public static final String SEPARATOR = "=";
+
+    public static Map<String, Object> extractAdditionalFields(String message) {
         Map extracted = new HashMap();
+
+        try {
+            for (String part : message.split(" ")) {
+                // Skip those parts that don't even include the k/v separator.
+                if (!part.contains(SEPARATOR)) {
+                    continue;
+                }
+
+                String[] pair = part.split(SEPARATOR);
+                if (pair.length != 2) {
+                    continue;
+                }
+
+                String key = parseString(pair[0], message);
+                Object value = valueToStringOrInt(pair[1]);
+
+                extracted.put(key, value);
+            }
+        } catch(Exception e) {
+            LOG.info("Could not tokenize message.", e);
+        }
 
         return extracted;
     }
 
-    // No spaces between = and
+    private static String parseString(String key, String fullMessage) {
+        // find position of =, parse from there until second " if enclosed in ", or until whitespace if not.
+        return "";
+    }
 
+    private static Object valueToStringOrInt(String value) {
+        if (Tools.isNumeric(value)) {
+            return Integer.parseInt(value);
+        } else {
+            // It's a string.
+            return value;
+        }
+    }
 }
