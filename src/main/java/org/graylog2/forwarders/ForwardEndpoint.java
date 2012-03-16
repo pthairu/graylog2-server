@@ -39,6 +39,7 @@ public class ForwardEndpoint {
     public static final int ENDPOINT_TYPE_UDP_SYSLOG = 0;
     public static final int ENDPOINT_TYPE_GELF = 1;
     public static final int ENDPOINT_TYPE_LOGGLY = 2;
+    public static final int ENDPOINT_TYPE_OPENTSDB = 3;
 
     private ObjectId id = null;
     private int endpointType = -1;
@@ -63,6 +64,8 @@ public class ForwardEndpoint {
                 return new GELFMessageForwarder(this.getHost(), this.getPort());
             case ENDPOINT_TYPE_LOGGLY:
                 return new LogglyForwarder(this.getHost());
+            case ENDPOINT_TYPE_OPENTSDB:
+                return new OpenTsdbForwarder(this.getHost(), this.getPort());
         }
 
         throw new InvalidEndpointTypeException();

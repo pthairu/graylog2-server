@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 Lennart Koopmann <lennart@socketfeed.com>
+ * Copyright 2012 Lennart Koopmann <lennart@socketfeed.com>
  *
  * This file is part of Graylog2.
  *
@@ -25,19 +25,19 @@ import org.graylog2.forwarders.MessageForwarderIF;
 import org.graylog2.messagehandlers.gelf.GELFMessage;
 
 /**
- * SyslogForwarder.java: Apr 5, 2011 8:23:14 PM
+ * OpenTsdbForwarder.java: Mar 16, 2011 4:54:25 PM
  *
- * Forwards syslog messages to other syslog endpoints.
+ * Forwards metrics extracted from a message to an OpenTSDB server.
  *
  * @author Lennart Koopmann <lennart@socketfeed.com>
  */
-public class UDPSyslogForwarder extends UDPForwarder implements MessageForwarderIF {
+public class OpenTsdbForwarder extends TCPForwarder implements MessageForwarderIF {
 
-    private static final Logger LOG = Logger.getLogger(LogglyForwarder.class);
-    
+    private static final Logger LOG = Logger.getLogger(OpenTsdbForwarder.class);
+
     private boolean succeeded = false;
 
-    public UDPSyslogForwarder(String host, int port) {
+    public OpenTsdbForwarder(String host, int port) throws MessageForwarderConfigurationException {
         this.setHost(host);
         this.setPort(port);
     }
@@ -48,22 +48,17 @@ public class UDPSyslogForwarder extends UDPForwarder implements MessageForwarder
             throw new MessageForwarderConfigurationException("Host is empty or port is invalid.");
         }
 
-        if (message.convertedFromSyslog()) {
-            this.succeeded = this.send(message.getRaw());
-        } else {
-            LOG.info("Not forwarding GELF messages via UDP syslog.");
-            this.succeeded = false;
-        }
-        
-        return this.succeeded();
+        this.succeeded = this.send("put lol.wut 1 100 foo=bar");
+
+        return this.succeeded;
     }
 
     /**
-     * Indicates if the last forward has succeeded. This is not guaranteeing
-     * delivery for the SyslogForwarder as it it sending UDP.
+     * Indicates if the last forward has succeeded.
      *
      * @return
      */
+    @Override
     public boolean succeeded() {
         return this.succeeded;
     }

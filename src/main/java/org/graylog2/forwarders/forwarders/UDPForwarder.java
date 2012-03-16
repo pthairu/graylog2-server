@@ -24,6 +24,8 @@ public class UDPForwarder {
     protected String host = null;
     protected int port = 0;
 
+    protected UDPForwarder() { /* Nothing. This is not meant to be instantiated. */ }
+
     protected boolean send(byte[] what) {
         DatagramSocket sock = null;
 
