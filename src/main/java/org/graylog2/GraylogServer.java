@@ -1,19 +1,12 @@
 package org.graylog2;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.log4j.Logger;
 import org.graylog2.blacklists.BlacklistCache;
 import org.graylog2.database.MongoBridge;
 import org.graylog2.database.MongoConnection;
 import org.graylog2.forwarders.forwarders.LogglyForwarder;
-import org.graylog2.indexer.Indexer;
 import org.graylog2.indexer.EmbeddedElasticSearchClient;
+import org.graylog2.indexer.Indexer;
 import org.graylog2.messagehandlers.amqp.AMQPBroker;
 import org.graylog2.messagehandlers.amqp.AMQPSubscribedQueue;
 import org.graylog2.messagehandlers.amqp.AMQPSubscriberThread;
@@ -22,13 +15,15 @@ import org.graylog2.messagehandlers.gelf.GELFMainThread;
 import org.graylog2.messagehandlers.syslog.SyslogServerThread;
 import org.graylog2.messagequeue.MessageQueue;
 import org.graylog2.messagequeue.MessageQueueFlusher;
-import org.graylog2.periodical.BulkIndexerThread;
-import org.graylog2.periodical.ChunkedGELFClientManagerThread;
-import org.graylog2.periodical.HostCounterCacheWriterThread;
-import org.graylog2.periodical.MessageCountWriterThread;
-import org.graylog2.periodical.MessageRetentionThread;
-import org.graylog2.periodical.ServerValueWriterThread;
+import org.graylog2.periodical.*;
 import org.graylog2.streams.StreamCache;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class GraylogServer implements Runnable {
 
@@ -113,7 +108,11 @@ public class GraylogServer implements Runnable {
         initializeMessageQueue(scheduler, configuration);
 
         // Write initial ServerValue information.
-        writeInitialServerValues(configuration);
+        if(!configuration.isDisableMongo()) {
+            writeInitialServerValues(configuration);
+        } else {
+            LOG.info("Not writing initial values since mongo updates are disabled (temporary workaround to support multiple servers).");
+        }
 
         // Start GELF threads
         if (configuration.isUseGELF()) {
@@ -126,7 +125,11 @@ public class GraylogServer implements Runnable {
         }
 
         // Start server value writer thread. (writes for example msg throughout and pings)
-        initializeServerValueWriter(scheduler);
+        if(!configuration.isDisableMongo()) {
+            initializeServerValueWriter(scheduler);
+        } else {
+            LOG.info("Not initializing values writer thread as mongo updates are disabled (temporary workaround to support multiple servers).");
+        }
 
         // Start thread that automatically removes messages older than retention time.
         if (configuration.performRetention()) {

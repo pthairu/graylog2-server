@@ -20,13 +20,13 @@
 
 package org.graylog2.periodical;
 
-import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.graylog2.Configuration;
 import org.graylog2.GraylogServer;
 import org.graylog2.messagehandlers.gelf.GELFMessage;
 import org.graylog2.messagequeue.MessageQueue;
+
+import java.util.List;
 
 /**
  * BulkIndexerThread.java: Nov 16, 2011 5:25:32 PM
@@ -43,6 +43,7 @@ public class BulkIndexerThread implements Runnable {
 
     private int batchSize;
     private int pollFreq;
+    private boolean disableMongo;
 
     private final GraylogServer graylogServer;
 
@@ -50,6 +51,7 @@ public class BulkIndexerThread implements Runnable {
         this.graylogServer = graylogServer;
         this.batchSize = configuration.getMessageQueueBatchSize();
         this.pollFreq = configuration.getMessageQueuePollFrequency();
+        this.disableMongo = configuration.isDisableMongo();
 
         LOG.info("Initialized message queue bulk indexer with batch size <" + this.batchSize + "> and polling frequency <" + this.pollFreq + ">.");
     }
@@ -72,7 +74,9 @@ public class BulkIndexerThread implements Runnable {
              * to see if the queue grows / if there are messages left *after*
              * writing.
              */
-            graylogServer.getServerValue().writeMessageQueueCurrentSize(MessageQueue.getInstance().getSize());
+            if(!disableMongo) {
+                graylogServer.getServerValue().writeMessageQueueCurrentSize(MessageQueue.getInstance().getSize());
+            }
         } catch (Exception e) {
             LOG.fatal("You possibly lost messages! :( Error in BulkIndexerThread: " + e.getMessage(), e);
         }

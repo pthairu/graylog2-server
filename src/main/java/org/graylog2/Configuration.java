@@ -20,15 +20,6 @@
 
 package org.graylog2;
 
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-import org.graylog2.messagehandlers.amqp.AMQPSubscribedQueue;
-import org.graylog2.messagehandlers.amqp.InvalidQueueTypeException;
-
 import com.github.joschi.jadconfig.Parameter;
 import com.github.joschi.jadconfig.ValidationException;
 import com.github.joschi.jadconfig.ValidatorMethod;
@@ -37,6 +28,14 @@ import com.github.joschi.jadconfig.validators.InetPortValidator;
 import com.github.joschi.jadconfig.validators.PositiveIntegerValidator;
 import com.github.joschi.jadconfig.validators.PositiveLongValidator;
 import com.mongodb.ServerAddress;
+import org.apache.log4j.Logger;
+import org.graylog2.messagehandlers.amqp.AMQPSubscribedQueue;
+import org.graylog2.messagehandlers.amqp.InvalidQueueTypeException;
+
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Helper class to hold configuration of Graylog2
@@ -149,6 +148,9 @@ public class Configuration {
 
     @Parameter("rules_file")
     private String droolsRulesFile;
+
+    @Parameter("disable_mongo")
+    private boolean disableMongo = true;
 
     public int getSyslogListenPort() {
         return syslogListenPort;
@@ -276,6 +278,10 @@ public class Configuration {
 
     public String getDroolsRulesFile() {
         return droolsRulesFile;
+    }
+
+    public boolean isDisableMongo() {
+        return disableMongo;
     }
 
     public List<ServerAddress> getMongoReplicaSet() {
